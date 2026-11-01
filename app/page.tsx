@@ -13,15 +13,30 @@ export default function HomePage() {
   const handleMark = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulating Claude API response (Replace with your actual API endpoint call e.g., /api/mark)
-    setTimeout(() => {
-      setResult({
-        score: "2 / 3",
-        feedback: "Clear and concise explanation. To secure the final mark, ensure you explicitly define the core economic term or reference the mark scheme key point."
+    setResult(null);
+
+    try {
+      const res = await fetch('/api/mark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, question, answer }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Evaluation failed');
+      }
+
+      setResult({
+        score: 'Evaluated',
+        feedback: data.feedback,
+      });
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -65,7 +80,7 @@ export default function HomePage() {
                 rows={3}
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="e.g., Explain one reason why a government might impose a maximum price on a good..."
+                placeholder="e.g., Explain one reason why a government might impose an indirect tax on cigarettes..."
                 className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
               />
@@ -96,15 +111,11 @@ export default function HomePage() {
           {result && (
             <div className="mt-8 p-6 bg-blue-50/50 border border-blue-100 rounded-xl animate-fadeIn">
               <h3 className="text-lg font-bold text-slate-800 mb-3">Marking Assessment</h3>
-              <div className="mb-3">
-                <span className="text-sm font-medium text-slate-600">Awarded Score: </span>
-                <span className="text-blue-600 font-bold text-lg">{result.score}</span>
-              </div>
               <div>
                 <span className="text-sm font-medium text-slate-600 block mb-1">Examiner Feedback: </span>
-                <p className="text-slate-700 bg-white p-4 rounded-lg border border-slate-200 text-sm leading-relaxed">
+                <div className="text-slate-700 bg-white p-4 rounded-lg border border-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
                   {result.feedback}
-                </p>
+                </div>
               </div>
             </div>
           )}
