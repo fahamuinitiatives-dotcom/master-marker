@@ -1,19 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 
-export default function HomePage() {
-  const [subject, setSubject] = useState('0455');
+export default function Home() {
+  const [subject, setSubject] = useState('Economics (0455)');
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
+  const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ score: string; feedback: string } | null>(null);
+  const [error, setError] = useState('');
 
-  const handleMark = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setResult(null);
+    setError('');
+    setFeedback('');
 
     try {
       const res = await fetch('/api/mark', {
@@ -25,102 +26,130 @@ export default function HomePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Evaluation failed');
+        throw new Error(data.error || 'Failed to generate evaluation.');
       }
 
-      setResult({
-        score: 'Evaluated',
-        feedback: data.feedback,
-      });
+      setFeedback(data.feedback);
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Navigation Header */}
-      <header className="bg-white border-b border-slate-200 py-4 px-6 flex justify-between items-center shadow-xs">
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight">🎯 IGCSE AI Marker</h1>
-        <nav className="flex gap-6 text-sm font-medium">
-          <Link href="/practice" className="text-blue-600 hover:underline">Practice Hub</Link>
-          <Link href="/dashboard" className="text-slate-600 hover:underline">Dashboard</Link>
-          <Link href="/admin" className="text-slate-600 hover:underline">Admin</Link>
-        </nav>
-      </header>
-
-      {/* Main Container */}
-      <main className="max-w-3xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Instant Exam Paper Marker</h2>
-          <p className="text-slate-600 mb-8">
-            Select your syllabus subject, paste your practice question, and submit your answer for instant, mark-scheme-aligned AI feedback powered by Groq.
+    <main className="min-h-screen bg-slate-900 text-slate-100 py-10 px-4 sm:px-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        {/* Header Section */}
+        <header className="text-center space-y-2 border-b border-slate-800 pb-6">
+          <span className="inline-block px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-semibold rounded-full border border-indigo-500/20">
+            Cambridge IGCSE
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            IGCSE AI Marker & Evaluator
+          </h1>
+          <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+            Get instant mark-scheme evaluations, detailed examiner feedback, and full-mark model candidate answers.
           </p>
+        </header>
 
-          <form onSubmit={handleMark} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Subject Selection</label>
-              <select 
-                value={subject} 
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="0455">Economics (0455)</option>
-                <option value="0580">Mathematics Extended (0580)</option>
-                <option value="0610">Biology (0610)</option>
-                <option value="0500">First Language English (0500)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Question Text</label>
-              <textarea 
-                rows={3}
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="e.g., Explain one reason why a government might impose an indirect tax on cigarettes..."
-                className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Your Answer</label>
-              <textarea 
-                rows={4}
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                placeholder="Type or paste your structured response here..."
-                className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition duration-200 disabled:opacity-50 shadow-sm"
+        {/* Input Form */}
+        <form onSubmit={handleSubmit} className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-6 shadow-xl space-y-5 backdrop-blur-sm">
+          
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Syllabus Subject
+            </label>
+            <select
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             >
-              {loading ? 'Evaluating with Groq AI...' : 'Submit for AI Marking'}
-            </button>
-          </form>
+              <option value="Economics (0455)">Economics (0455)</option>
+              <option value="Biology (0610)">Biology (0610)</option>
+              <option value="Chemistry (0620)">Chemistry (0620)</option>
+              <option value="Physics (0625)">Physics (0625)</option>
+              <option value="First Language English (0500)">First Language English (0500)</option>
+              <option value="Global Perspectives (0457)">Global Perspectives (0457)</option>
+              <option value="ICT (0417)">ICT (0417)</option>
+            </select>
+          </div>
 
-          {/* Results Display Box */}
-          {result && (
-            <div className="mt-8 p-6 bg-blue-50/50 border border-blue-100 rounded-xl animate-fadeIn">
-              <h3 className="text-lg font-bold text-slate-800 mb-3">Marking Assessment</h3>
-              <div>
-                <span className="text-sm font-medium text-slate-600 block mb-1">Examiner Feedback: </span>
-                <div className="text-slate-700 bg-white p-4 rounded-lg border border-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
-                  {result.feedback}
-                </div>
-              </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Exam Question
+            </label>
+            <textarea
+              rows={3}
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Paste the exam question here (e.g. Analyse how an increase in indirect tax on cigarettes can affect market outcomes. [6])"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Your Student Answer
+            </label>
+            <textarea
+              rows={6}
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Write or paste your answer here..."
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800/50 text-white font-medium rounded-lg shadow-lg transition duration-150 flex justify-center items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Evaluating with Groq AI...
+              </>
+            ) : (
+              'Submit for Examiner Marking'
+            )}
+          </button>
+        </form>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Feedback Section */}
+        {feedback && (
+          <section className="bg-slate-800/90 border border-indigo-500/30 rounded-xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-700 pb-3">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span>📋</span> Examiner Evaluation
+              </h2>
+              <span className="text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+                Groq 120B Verified
+              </span>
             </div>
-          )}
-        </div>
-      </main>
-    </div>
+
+            {/* Formatted Output Box */}
+            <div className="whitespace-pre-wrap text-slate-200 text-sm sm:text-base leading-relaxed space-y-3 font-sans">
+              {feedback}
+            </div>
+          </section>
+        )}
+
+      </div>
+    </main>
   );
 }
