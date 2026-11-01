@@ -1,6 +1,6 @@
 {
-  "name": "igcse-marker",
-  "version": "1.0.0",
+  "name": "master-marker",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,24 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
-    "@supabase/ssr": "^0.1.0",
-    "@supabase/supabase-js": "^2.39.8",
-    "docx": "^8.5.0",
-    "framer-motion": "^11.0.12",
-    "next": "14.1.3",
+    "@tailwindcss/postcss": "^4",
+    "autoprefixer": "^10.4.17",
+    "next": "14.1.0",
+    "postcss": "^8.4.35",
     "react": "^18",
     "react-dom": "^18",
-    "tailwindcss": "^3.3.0",
-    "zod": "^3.22.4",
-    "lucide-react": "^0.359.0"
+    "tailwindcss": "^4"
   },
-  "devDependencies": {
+  devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
 }
