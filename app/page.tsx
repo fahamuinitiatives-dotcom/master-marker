@@ -56,7 +56,7 @@ export default function HomePage() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Instant Exam Paper Marker</h2>
           <p className="text-slate-600 mb-8">
-            Select your syllabus subject, paste your practice question, and submit your answer for instant, mark-scheme-aligned AI feedback powered by Claude.
+            Select your syllabus subject, paste your practice question, and submit your answer for instant, mark-scheme-aligned AI feedback powered by Groq.
           </p>
 
           <form onSubmit={handleMark} className="space-y-6">
@@ -103,7 +103,7 @@ export default function HomePage() {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition duration-200 disabled:opacity-50 shadow-sm"
             >
-              {loading ? 'Evaluating with Claude AI...' : 'Submit for AI Marking'}
+              {loading ? 'Evaluating with Groq AI...' : 'Submit for AI Marking'}
             </button>
           </form>
 
