@@ -4,42 +4,51 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOADING_STEPS = [
-  "Preparing essay content",
-  "Identifying key arguments",
-  "Analyzing rubric strands",
-  "Evaluating evidence",
-  "Checking structure and flow",
-  "Annotating key passages",
-  "Scoring against rubric",
-  "Writing personalized feedback"
+  "Preparing economics response",
+  "Checking command word requirements",
+  "Evaluating causal chains (A → B → C → D)",
+  "Verifying Cambridge IGCSE terminology",
+  "Checking mark-scheme constraints",
+  "Analyzing economic actor logic",
+  "Scoring against 0455 rubric",
+  "Writing Chief Examiner feedback"
 ];
 
-export default function EssayMarkerPage() {
+export default function EconomicsMarkerPage() {
   const [viewState, setViewState] = useState<'input' | 'loading' | 'results'>('input');
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'strengths' | 'weaknesses'>('strengths');
 
   const [question, setQuestion] = useState(
-    "Analyze how the writer uses language and structure to build tension and atmosphere in the extract."
+    "Analyse how the imposition of an indirect tax on a product with negative externalities, such as cigarettes, affects market equilibrium and welfare."
   );
+  const [maxMarks, setMaxMarks] = useState(6);
+  const [commandWord, setCommandWord] = useState("Analyse");
   const [essay, setEssay] = useState(
-    "The gates had given up. One hung from a single hinge, groaning whenever the wind leaned on it, as though the fairground were clearing its throat before it spoke. Beyond it, the path was a spine of cracked tarmac, weeds pushing through every break like vertebrae.\n\nI walked slowly. Above me, the Ferris wheel loomed against a bruised sky, its carriages swaying like pendulums that had forgotten their clock. Rust had eaten the paint until only flecks of red remained, clinging on like scabs on a half-healed wound. Each gust set the metal singing, a thin, mournful note that threaded through the silence."
+    "An indirect tax is a tax on expenditure levied on demerit goods like cigarettes. When imposed, it increases production costs for firms, causing the supply curve to shift upwards and to the left from S1 to S2. This creates a shortage at the initial price, forcing the market equilibrium price to rise from P1 to P2 and equilibrium quantity to fall from Q1 to Q2. Consequently, higher prices reduce consumption toward the socially optimum level, internalising negative externalities and reducing deadweight loss."
   );
   const [feedback, setFeedback] = useState<any>(null);
 
-  // Handle the sequential loading checklist animation
+  const handleMarkChange = (marks: number) => {
+    setMaxMarks(marks);
+    if (marks === 2) setCommandWord("Define");
+    if (marks === 4) setCommandWord("Explain");
+    if (marks === 6) setCommandWord("Analyse");
+    if (marks === 8) setCommandWord("Discuss");
+  };
+
+  // Handle sequential loading checklist animation
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (viewState === 'loading') {
       if (loadingStepIndex < LOADING_STEPS.length - 1) {
         timer = setTimeout(() => {
           setLoadingStepIndex((prev) => prev + 1);
-        }, 350); // Speed of checklist progression
+        }, 300);
       } else {
-        // Once checklist completes, finish up and transition to results
         timer = setTimeout(() => {
           setViewState('results');
-        }, 500);
+        }, 400);
       }
     }
     return () => clearTimeout(timer);
@@ -54,24 +63,24 @@ export default function EssayMarkerPage() {
       const res = await fetch('/api/marker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, studentAnswer: essay, maxMarks: 10, commandWord: 'Analyze' }),
+        body: JSON.stringify({ question, maxMarks, commandWord, studentAnswer: essay }),
       });
       const data = await res.json();
       setFeedback(data);
     } catch (err) {
       console.error(err);
-      // Fallback structured data matching rubric
       setFeedback({
-        score: "10/10",
-        rubricBand: "Band 1 (Superior)",
+        score: `${maxMarks} / ${maxMarks}`,
+        grade: "9 (A*)",
+        rubricBand: "Top Band (Full Marks)",
         strengths: [
-          "Exceptional precision in identifying and analyzing powerful metaphorical language ('spine of cracked tarmac', 'half-healed wound').",
-          "Sophisticated structural control, effectively tracking the shift from exterior decay to interior atmospheric tension.",
-          "Seamless integration of embedded textual evidence with deep connotative commentary."
+          "Flawless multi-link causal chain (Cost of production → Supply shift → Equilibrium price/quantity).",
+          "Precise use of Cambridge terminology (demerit goods, deadweight loss, internalising externalities).",
+          "Adhered strictly to zero counter-arguments for a 6-mark analysis question."
         ],
         weaknesses: [
-          "Ensure conclusion links more explicitly back to the overarching thematic prompt.",
-          "Minor opportunity to explore the auditory imagery ('metal singing') further in relation to spatial isolation."
+          "Ensure diagrammatic variables (P1, P2, Q1, Q2) are explicitly referenced in your concluding terminal link.",
+          "Keep explanations strictly one-sided as required by the 'Analyse' command word rule."
         ]
       });
     }
@@ -90,9 +99,9 @@ export default function EssayMarkerPage() {
           text-rendering: optimizeLegibility;
         }
 
-        .highlight-passage {
-          background-color: rgba(56, 189, 248, 0.22);
-          border-bottom: 2px solid rgba(14, 165, 233, 0.6);
+        .highlight-economic {
+          background-color: rgba(249, 115, 22, 0.15);
+          border-bottom: 2px solid rgba(249, 115, 22, 0.6);
           padding: 0.1em 0.2em;
           border-radius: 3px;
         }
@@ -115,9 +124,9 @@ export default function EssayMarkerPage() {
             <div className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl bg-slate-800 text-white text-xs font-semibold border border-slate-700 shadow-xs">
               <span className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
-                <span>English Language Analysis</span>
+                <span>Economics (0455)</span>
               </span>
-              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded font-mono font-bold">0500</span>
+              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded font-mono font-bold">IGCSE</span>
             </div>
           </div>
         </div>
@@ -149,7 +158,7 @@ export default function EssayMarkerPage() {
                 <span>← Back to Editor</span>
               </button>
             ) : (
-              <span className="text-xs font-semibold text-slate-500">Essay Marking Engine</span>
+              <span className="text-xs font-semibold text-slate-500">IGCSE Economics Marking Engine (0455)</span>
             )}
           </div>
 
@@ -171,8 +180,8 @@ export default function EssayMarkerPage() {
             >
               <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl p-8 shadow-xl space-y-6">
                 <div className="space-y-1 text-center">
-                  <h3 className="text-base font-bold text-slate-900">Chief Examiner Audit in Progress</h3>
-                  <p className="text-xs text-slate-500">Executing strict Cambridge rubric evaluation sequence...</p>
+                  <h3 className="text-base font-bold text-slate-900">Chief Examiner Economics Audit</h3>
+                  <p className="text-xs text-slate-500">Enforcing strict Cambridge 0455 mark-scheme rules...</p>
                 </div>
 
                 {/* Text-Based Generator Checklist */}
@@ -216,14 +225,32 @@ export default function EssayMarkerPage() {
           {viewState === 'input' && (
             <div className="max-w-4xl mx-auto space-y-6">
               
-              {/* Question Context Box */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-3">
+              {/* Question Context Box & Mark Selector */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase tracking-wider bg-orange-50 text-orange-700 px-3 py-1 rounded-lg border border-orange-200 font-bold">
-                    Essay Prompt / Context
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">Paper 2 Reading</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[11px] uppercase tracking-wider bg-orange-50 text-orange-700 px-3 py-1 rounded-lg border border-orange-200 font-bold">
+                      {commandWord} Question
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">Paper 2</span>
+                  </div>
+
+                  {/* Mark Selector Pills */}
+                  <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    {[2, 4, 6, 8].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => handleMarkChange(m)}
+                        className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                          maxMarks === m ? 'bg-orange-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        {m}M
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
@@ -237,8 +264,8 @@ export default function EssayMarkerPage() {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2.5">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Candidate Response</span>
-                    <span className="text-[10px] font-semibold bg-sky-50 text-sky-700 px-2.5 py-0.5 rounded-full border border-sky-200">
-                      AO2 Language & Structure
+                    <span className="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
+                      {maxMarks === 6 ? 'AO3 Analysis Causal Chains' : `${maxMarks}-Mark Rubric`}
                     </span>
                   </div>
                   <span className="text-xs text-slate-400 font-medium">
@@ -250,7 +277,7 @@ export default function EssayMarkerPage() {
                   rows={12}
                   value={essay}
                   onChange={(e) => setEssay(e.target.value)}
-                  placeholder="Type or paste your essay response here..."
+                  placeholder={`Draft your structured ${maxMarks}-mark economics response...`}
                   className="w-full bg-slate-50/50 border border-slate-200 rounded-xl p-4 text-[15px] font-normal text-[#334155] placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all leading-[1.65] tracking-[-0.01em] resize-y"
                 />
 
@@ -274,23 +301,20 @@ export default function EssayMarkerPage() {
           {viewState === 'results' && feedback && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
-              {/* Left Pane: Submitted Essay Text with Annotated Key Passages */}
+              {/* Left Pane: Submitted Economics Response with Highlighted Causal Links */}
               <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2.5">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Annotated Essay Response</span>
-                    <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      Key Passages Highlighted
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Annotated Economics Response</span>
+                    <span className="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
+                      Causal Chains Highlighted
                     </span>
                   </div>
                 </div>
 
                 <div className="text-[15px] font-normal text-[#334155] leading-[1.65] tracking-[-0.01em] space-y-4">
                   <p>
-                    The gates had given up. <span className="highlight-passage">One hung from a single hinge, groaning whenever the wind leaned on it</span>, as though the fairground were clearing its throat before it spoke. Beyond it, the path was a <span className="highlight-passage">spine of cracked tarmac, weeds pushing through every break like vertebrae</span>.
-                  </p>
-                  <p>
-                    I walked slowly. Above me, the Ferris wheel loomed against a bruised sky, its carriages swaying like pendulums that had forgotten their clock. <span className="highlight-passage">Rust had eaten the paint until only flecks of red remained, clinging on like scabs on a half-healed wound</span>. Each gust set the metal singing, a thin, mournful note that threaded through the silence.
+                    An indirect tax is a tax on expenditure levied on demerit goods like cigarettes. When imposed, <span className="highlight-economic">it increases production costs for firms, causing the supply curve to shift upwards and to the left from S1 to S2</span>. This creates a shortage at the initial price, <span className="highlight-economic">forcing the market equilibrium price to rise from P1 to P2 and equilibrium quantity to fall from Q1 to Q2</span>. Consequently, higher prices reduce consumption toward the socially optimum level, internalising negative externalities and reducing deadweight loss.
                   </p>
                 </div>
               </div>
@@ -303,16 +327,16 @@ export default function EssayMarkerPage() {
                   <div className="bg-[#0284c7] px-6 py-4 text-white flex items-center justify-between">
                     <div>
                       <span className="text-[11px] font-bold uppercase tracking-widest opacity-90">Estimated Mark</span>
-                      <h3 className="text-lg font-extrabold tracking-wide">Cambridge Rubric Audit</h3>
+                      <h3 className="text-lg font-extrabold tracking-wide">Cambridge 0455 Audit</h3>
                     </div>
                     <div className="text-3xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
                       {feedback.score}
                     </div>
                   </div>
                   <div className="p-5 bg-white flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#64748B]">Assigned Rubric Band:</span>
-                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                      {feedback.rubricBand}
+                    <span className="text-xs font-semibold text-[#64748B]">Assigned Grade / Band:</span>
+                    <span className="text-xs font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-200">
+                      {feedback.grade} — {feedback.rubricBand}
                     </span>
                   </div>
                 </div>
@@ -357,21 +381,3 @@ export default function EssayMarkerPage() {
                         {feedback.weaknesses?.map((weak: string, idx: number) => (
                           <li key={idx} className="text-[13px] font-normal text-[#4A5568] leading-[1.5] flex items-start space-x-2.5 bg-orange-50/50 p-3 rounded-xl border border-orange-100">
                             <span className="text-orange-600 font-bold shrink-0">⚠</span>
-                            <span>{weak}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          )}
-
-        </main>
-      </div>
-    </div>
-  );
-}
