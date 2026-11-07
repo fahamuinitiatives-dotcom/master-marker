@@ -50,9 +50,10 @@ const PRESETS: Record<number, Preset> = {
   },
 };
 
-interface Suggestion {
-  description: string;
-  model: string;
+interface BreakdownRow {
+  text: string;
+  marks: number;
+  adjustment?: boolean;
 }
 interface Annotation {
   paragraph: number;
@@ -64,13 +65,22 @@ interface Feedback {
   score: string;
   grade: string;
   summary: string;
-  positives: string[];
-  suggestions: Suggestion[];
+  breakdown: BreakdownRow[];
+  improvements: string[];
+  model: string;
   annotations: Annotation[];
   caps: string[];
 }
 
 type ViewState = 'input' | 'loading' | 'results';
+
+const TABS = [
+  { id: 'feedback', label: 'Feedback' },
+  { id: 'show', label: 'Show me' },
+] as const;
+type TabId = (typeof TABS)[number]['id'];
+
+const marksLabel = (n: number) => `[${n} ${Math.abs(n) === 1 ? 'mark' : 'marks'}]`;
 
 /* ---------------------------- Icons ---------------------------- */
 
@@ -79,6 +89,12 @@ type IconProps = { className?: string };
 const CheckIcon = ({ className }: IconProps) => (
   <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
     <path d="M4.5 10.5l3.5 3.5 7.5-8" />
+  </svg>
+);
+
+const MinusIcon = ({ className }: IconProps) => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" className={className} aria-hidden="true">
+    <path d="M5 10h10" />
   </svg>
 );
 
@@ -118,7 +134,7 @@ export default function EconomicsMarkerPage() {
 
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [showExactMarks, setShowExactMarks] = useState(false);
-  const [showModel, setShowModel] = useState(false);
+  const [tab, setTab] = useState<TabId>('feedback');
 
   const handleMarkChange = (marks: number) => {
     const preset = PRESETS[marks];
@@ -149,7 +165,7 @@ export default function EconomicsMarkerPage() {
     setErrorMsg(null);
     setFeedback(null);
     setShowExactMarks(false);
-    setShowModel(false);
+    setTab('feedback');
     setApiDone(false);
     setLoadingStepIndex(0);
     setViewState('loading');
@@ -183,6 +199,8 @@ export default function EconomicsMarkerPage() {
     }
     return `Paragraph ${idx + 1}`;
   };
+
+  const hasAdjustment = feedback?.breakdown?.some((r) => r.adjustment) ?? false;
 
   return (
     <div className="flex min-h-screen w-full bg-slate-50 text-slate-700">
@@ -417,7 +435,9 @@ export default function EconomicsMarkerPage() {
                   {/* Left: annotated response */}
                   <section className="rounded-xl border border-slate-200 bg-white p-6 lg:col-span-7">
                     <h2 className="text-[15px] font-bold text-slate-900">Annotated response</h2>
-                    <p className="mt-0.5 text-[13px] text-slate-500">{commandWord}: {question}</p>
+                    <p className="mt-0.5 text-[13px] text-slate-500">
+                      {commandWord}: {question}
+                    </p>
 
                     <div className="mt-6 space-y-6">
                       {essayParagraphs.map((para, idx) => {
@@ -443,10 +463,10 @@ export default function EconomicsMarkerPage() {
                             </p>
                             <p className="mt-1.5 text-[15px] leading-[1.65] tracking-[-0.01em] text-slate-700">{para}</p>
                             {note && (
-                              <div className="mt-3 rounded-lg bg-slate-50 px-3.5 py-2.5 text-[13px] leading-relaxed text-slate-600">
-                                <span className="font-bold text-slate-900">Examiner </span>
+                              <p className="mt-2.5 border-t border-slate-100 pt-2.5 text-[13px] leading-relaxed text-slate-500">
+                                <span className="font-semibold text-slate-700">Examiner: </span>
                                 {note.comment}
-                              </div>
+                              </p>
                             )}
                           </motion.div>
                         );
@@ -454,21 +474,41 @@ export default function EconomicsMarkerPage() {
                     </div>
                   </section>
 
-                  {/* Right: feedback cards */}
-                  <div className="space-y-6 lg:col-span-5">
-                    {/* Estimated mark */}
-                    <motion.section
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...spring, delay: 0.05 }}
-                      className="rounded-xl border border-slate-200 bg-white p-6"
-                    >
+                  {/* Right: one feedback panel with tabs */}
+                  <motion.section
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...spring, delay: 0.05 }}
+                    className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white lg:sticky lg:top-24 lg:col-span-5 lg:max-h-[calc(100vh-8rem)]"
+                  >
+                    {/* Mark header */}
+                    <div className="px-6 pb-5 pt-6">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="text-[15px] font-bold text-slate-900">Estimated mark</h3>
-                          <p className="mt-0.5 text-[13px] text-slate-500">{maxMarks}-mark question</p>
+                          <p className="text-[13px] font-semibold text-slate-500">Estimated mark</p>
+                          <div className="mt-1.5 min-h-[2.5rem]">
+                            <AnimatePresence mode="wait">
+                              <motion.div
+                                key={showExactMarks ? 'exact' : 'grade'}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.15 }}
+                              >
+                                {showExactMarks ? (
+                                  <p className="text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums">
+                                    {feedback.marks}
+                                    <span className="ml-1.5 text-lg font-bold text-slate-400">/ {feedback.maxMarks}</span>
+                                  </p>
+                                ) : (
+                                  <p className="text-3xl font-extrabold tracking-tight text-slate-900">{feedback.grade}</p>
+                                )}
+                              </motion.div>
+                            </AnimatePresence>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2.5">
+
+                        <div className="flex items-center gap-2.5 pt-0.5">
                           <span className="text-[13px] font-semibold text-slate-600">See exact marks</span>
                           <button
                             role="switch"
@@ -488,34 +528,8 @@ export default function EconomicsMarkerPage() {
                         </div>
                       </div>
 
-                      <div className="mt-6 min-h-[3.5rem]">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={showExactMarks ? 'exact' : 'grade'}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.15 }}
-                          >
-                            {showExactMarks ? (
-                              <p className="text-4xl font-extrabold tracking-tight text-slate-900 tabular-nums">
-                                {feedback.marks}
-                                <span className="ml-1.5 text-xl font-bold text-slate-400">/ {feedback.maxMarks}</span>
-                              </p>
-                            ) : (
-                              <p className="text-4xl font-extrabold tracking-tight text-slate-900">{feedback.grade}</p>
-                            )}
-                          </motion.div>
-                        </AnimatePresence>
-                      </div>
-
-                      {showExactMarks && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="mt-4 flex gap-1.5"
-                          aria-hidden="true"
-                        >
+                      {showExactMarks ? (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex gap-1.5" aria-hidden="true">
                           {Array.from({ length: feedback.maxMarks }).map((_, i) => (
                             <span
                               key={i}
@@ -523,99 +537,135 @@ export default function EconomicsMarkerPage() {
                             />
                           ))}
                         </motion.div>
-                      )}
-
-                      <p className="mt-5 text-xs leading-relaxed text-slate-400">
-                        Grades are indicative for a single question and are not official boundaries.
-                      </p>
-                    </motion.section>
-
-                    {/* Feedback summary */}
-                    <motion.section
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...spring, delay: 0.12 }}
-                      className="rounded-xl border border-slate-200 bg-white p-6"
-                    >
-                      <h3 className="text-[15px] font-bold text-slate-900">Feedback summary</h3>
-                      <p className="mt-3 text-[15px] leading-[1.65] tracking-[-0.01em] text-slate-600">{feedback.summary}</p>
-                      {(feedback.caps?.length ?? 0) > 0 && (
-                        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                          <p className="text-[13px] font-bold text-amber-900">Mark ceiling applied</p>
-                          <ul className="mt-1.5 space-y-1 text-[13px] leading-snug text-amber-900">
-                            {feedback.caps.map((c, i) => (
-                              <li key={i}>{c}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </motion.section>
-
-                    {/* Positives */}
-                    <motion.section
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...spring, delay: 0.19 }}
-                      className="rounded-xl border border-slate-200 bg-white p-6"
-                    >
-                      <h3 className="text-[15px] font-bold text-slate-900">Positives</h3>
-                      {(feedback.positives?.length ?? 0) > 0 ? (
-                        <ul className="mt-3 space-y-3">
-                          {feedback.positives.map((pos, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-[15px] leading-[1.55] text-slate-600">
-                              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                                <CheckIcon className="h-3 w-3" />
-                              </span>
-                              <span>{pos}</span>
-                            </li>
-                          ))}
-                        </ul>
                       ) : (
-                        <p className="mt-3 text-[15px] text-slate-500">No creditworthy points were identified.</p>
+                        <p className="mt-2 text-xs text-slate-400">Indicative grade for a single question.</p>
                       )}
-                    </motion.section>
+                    </div>
 
-                    {/* Suggestions */}
-                    <motion.section
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...spring, delay: 0.26 }}
-                      className="rounded-xl border border-slate-200 bg-white p-6"
-                    >
-                      <h3 className="text-[15px] font-bold text-slate-900">Suggestions</h3>
-
-                      {feedback.suggestions?.map((sug, idx) => (
-                        <div key={idx} className="mt-3">
-                          <p className="text-[15px] leading-[1.65] tracking-[-0.01em] text-slate-600">{sug.description}</p>
-
-                          <AnimatePresence initial={false}>
-                            {showModel && sug.model && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.25 }}
-                                className="overflow-hidden"
-                              >
-                                <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50/50 p-4">
-                                  <p className="text-[13px] font-bold text-orange-700">Upgraded model standard</p>
-                                  <p className="mt-2 whitespace-pre-line text-[14px] leading-[1.65] text-slate-700">{sug.model}</p>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
+                    {/* Tabs */}
+                    <div role="tablist" aria-label="Feedback sections" className="flex gap-6 border-b border-slate-200 px-6">
+                      {TABS.map((t) => (
+                        <button
+                          key={t.id}
+                          role="tab"
+                          aria-selected={tab === t.id}
+                          onClick={() => setTab(t.id)}
+                          className={`relative flex cursor-pointer items-center gap-1.5 pb-3 pt-1 text-sm font-bold transition-colors ${focusRing} ${
+                            tab === t.id ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          {t.id === 'show' && <SparkleIcon className="h-3.5 w-3.5 text-orange-500" />}
+                          {t.label}
+                          {tab === t.id && (
+                            <motion.span
+                              layoutId="tabUnderline"
+                              transition={spring}
+                              className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-orange-500"
+                            />
+                          )}
+                        </button>
                       ))}
+                    </div>
 
-                      <button
-                        onClick={() => setShowModel((v) => !v)}
-                        className={`mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-orange-500 bg-white py-2.5 text-sm font-bold text-orange-600 transition-colors hover:bg-orange-50 ${focusRing}`}
-                      >
-                        <SparkleIcon className="h-4 w-4" />
-                        {showModel ? 'Hide model answer' : 'Show me'}
-                      </button>
-                    </motion.section>
-                  </div>
+                    {/* Tab content */}
+                    <div role="tabpanel" className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-6">
+                      <AnimatePresence mode="wait">
+                        {tab === 'feedback' ? (
+                          <motion.div
+                            key="feedback"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.18 }}
+                          >
+                            {feedback.breakdown?.length > 0 && (
+                              <ul className="space-y-3.5">
+                                {feedback.breakdown.map((row, idx) => (
+                                  <li key={idx} className="flex items-start gap-3 text-[14px] leading-[1.6] text-slate-600">
+                                    <span
+                                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                                        row.marks > 0
+                                          ? 'bg-emerald-100 text-emerald-600'
+                                          : row.marks < 0
+                                          ? 'bg-rose-100 text-rose-600'
+                                          : 'bg-slate-100 text-slate-400'
+                                      }`}
+                                    >
+                                      {row.marks > 0 ? <CheckIcon className="h-3 w-3" /> : <MinusIcon className="h-3 w-3" />}
+                                    </span>
+                                    <span>
+                                      {row.text}{' '}
+                                      <strong className="whitespace-nowrap font-bold text-slate-900">{marksLabel(row.marks)}</strong>
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                            <p
+                              className={`text-[14px] leading-[1.65] text-slate-600 ${
+                                feedback.breakdown?.length > 0 ? 'mt-5 border-t border-slate-100 pt-5' : ''
+                              }`}
+                            >
+                              {feedback.summary}
+                            </p>
+
+                            {!hasAdjustment && (feedback.caps?.length ?? 0) > 0 && (
+                              <ul className="mt-4 space-y-1 rounded-lg bg-amber-50 px-3.5 py-2.5 text-[13px] leading-snug text-amber-900">
+                                {feedback.caps.map((c, i) => (
+                                  <li key={i}>{c}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="show"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.18 }}
+                            className="space-y-6"
+                          >
+                            {feedback.improvements?.length > 0 && (
+                              <div>
+                                <h3 className="text-[14px] font-bold text-slate-900">To reach full marks</h3>
+                                <ul className="mt-3 space-y-2.5">
+                                  {feedback.improvements.map((tip, i) => (
+                                    <li key={i} className="flex items-start gap-2.5 text-[14px] leading-[1.6] text-slate-600">
+                                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                                      <span>{tip}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {feedback.model && (
+                              <div>
+                                <h3 className="text-[14px] font-bold text-slate-900">Model answer</h3>
+                                <div className="mt-3 space-y-3 border-l-2 border-orange-300 pl-4">
+                                  {feedback.model
+                                    .split(/\n+/)
+                                    .map((p) => p.trim())
+                                    .filter(Boolean)
+                                    .map((p, i) => (
+                                      <p key={i} className="text-[14px] leading-[1.65] tracking-[-0.01em] text-slate-700">
+                                        {p}
+                                      </p>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {!feedback.model && (feedback.improvements?.length ?? 0) === 0 && (
+                              <p className="text-[14px] text-slate-500">No suggestions were returned for this answer.</p>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.section>
                 </div>
               </motion.div>
             )}
