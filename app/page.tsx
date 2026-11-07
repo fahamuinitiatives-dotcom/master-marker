@@ -381,3 +381,21 @@ export default function EconomicsMarkerPage() {
                         {feedback.weaknesses?.map((weak: string, idx: number) => (
                           <li key={idx} className="text-[13px] font-normal text-[#4A5568] leading-[1.5] flex items-start space-x-2.5 bg-orange-50/50 p-3 rounded-xl border border-orange-100">
                             <span className="text-orange-600 font-bold shrink-0">⚠</span>
+                            <span>{weak}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+        </main>
+      </div>
+    </div>
+  );
+}
