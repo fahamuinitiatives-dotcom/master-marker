@@ -2,12 +2,20 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+// llama-3.3-70b-versatile was retired by Groq on 16 Aug 2026.
+const PRIMARY_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+const FALLBACK_MODELS = ['qwen/qwen3.6-27b'].filter((m) => m !== PRIMARY_MODEL);
+
 const VALID_MARKS = [2, 4, 6, 8] as const;
 type MarkBand = (typeof VALID_MARKS)[number];
+
+interface GroqResponse {
+  error?: { message?: string; code?: string };
+  choices?: { message?: { content?: string } }[];
+}
 
 /* ------------------------------------------------------------------ */
 /* Prompt                                                              */
@@ -158,6 +166,47 @@ function defaultCommandWord(maxMarks: MarkBand): string {
   return { 2: 'Define', 4: 'Explain', 6: 'Analyse', 8: 'Discuss' }[maxMarks];
 }
 
+interface GroqResult {
+  ok: boolean;
+  status: number;
+  data: GroqResponse | null;
+}
+
+async function callGroq(apiKey: string, model: string, system: string, user: string): Promise<GroqResult> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+      }),
+      signal: controller.signal,
+    });
+    const data = (await res.json().catch(() => null)) as GroqResponse | null;
+    return { ok: res.ok, status: res.status, data };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function isModelProblem(result: GroqResult): boolean {
+  const code = result.data?.error?.code ?? '';
+  const msg = result.data?.error?.message ?? '';
+  if (code === 'model_not_found' || code === 'model_decommissioned') return true;
+  return /model/i.test(msg) && /(exist|decommission|deprecat|access|not supported)/i.test(msg);
+}
+
 /* ------------------------------------------------------------------ */
 /* Route                                                               */
 /* ------------------------------------------------------------------ */
@@ -202,40 +251,21 @@ RESPONSE>>>
 
 Mark strictly under the ${band}-mark rules. Do not be generous to short or under-explained paragraphs. Return JSON only.`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25_000);
-
-    let groqRes: Response;
-    try {
-      groqRes = await fetch(GROQ_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: GROQ_MODEL,
-          temperature: 0.1,
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: buildSystemPrompt(band) },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeout);
+    // Try the primary model, then fall back only if the model itself is rejected.
+    const system = buildSystemPrompt(band);
+    let result: GroqResult | null = null;
+    for (const model of [PRIMARY_MODEL, ...FALLBACK_MODELS]) {
+      result = await callGroq(apiKey, model, system, userPrompt);
+      if (result.ok || !isModelProblem(result)) break;
     }
 
-    const data = await groqRes.json().catch(() => null);
-    if (!groqRes.ok) {
-      const msg = data?.error?.message || `Groq request failed (${groqRes.status}).`;
+    if (!result || !result.ok) {
+      const msg = result?.data?.error?.message || `Groq request failed (${result?.status ?? 'no response'}).`;
       return NextResponse.json({ error: msg }, { status: 502 });
     }
 
-    const content: unknown = data?.choices?.[0]?.message?.content;
-    if (typeof content !== 'string') {
+    const content: unknown = result.data?.choices?.[0]?.message?.content;
+    if (typeof content !== 'string' || !content.trim()) {
       return NextResponse.json({ error: 'Empty response from the marking model.' }, { status: 502 });
     }
 
