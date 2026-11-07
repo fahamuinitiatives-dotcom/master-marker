@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'], display: 'swap', weight: ['400', '500', '600', '700', '800', '900'] });
 
 const spring = { type: 'spring', stiffness: 260, damping: 26 } as const;
 
@@ -148,9 +145,7 @@ export default function EconomicsMarkerPage() {
   };
 
   return (
-    <div
-      className={`${inter.className} min-h-screen w-full bg-[#f8fafc] text-[#334155] antialiased [text-rendering:optimizeLegibility] flex`}
-    >
+    <div className="min-h-screen w-full bg-[#f8fafc] text-[#334155] antialiased [text-rendering:optimizeLegibility] flex">
       {/* Sidebar */}
       <aside className="hidden md:flex w-64 bg-[#0f172a] text-slate-300 flex-col justify-between border-r border-slate-800 shrink-0 select-none">
         <div>
@@ -490,7 +485,7 @@ export default function EconomicsMarkerPage() {
                     </div>
                     <div className="p-6 space-y-3">
                       <p className="text-[14px] font-normal text-[#4a5568] leading-[1.65] tracking-[-0.01em]">{feedback.summary}</p>
-                      {feedback.caps?.length > 0 && (
+                      {(feedback.caps?.length ?? 0) > 0 && (
                         <ul className="space-y-1.5">
                           {feedback.caps.map((c, i) => (
                             <li
@@ -516,7 +511,7 @@ export default function EconomicsMarkerPage() {
                       <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       <span>Positives</span>
                     </span>
-                    {feedback.positives?.length > 0 ? (
+                    {(feedback.positives?.length ?? 0) > 0 ? (
                       <ul className="space-y-2.5">
                         {feedback.positives.map((pos, idx) => (
                           <li
