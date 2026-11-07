@@ -247,10 +247,10 @@ Mark strictly under the ${band}-mark rules. Do not be generous to short or under
     }
 
     // Marks: model's mark, then deterministic ceilings applied on top.
-    const modelMarks = toInt(parsed.marks ?? parsed.score, band);
+    const modelMarks: number = toInt(parsed.marks ?? parsed.score, band);
     const caps = computeCaps(band, studentAnswer);
-    const ceiling = caps.reduce((min, c) => Math.min(min, c.limit), band);
-    const marks = Math.min(modelMarks, ceiling);
+    const ceiling: number = Math.min(band, ...caps.map((c) => c.limit));
+    const marks: number = Math.min(modelMarks, ceiling);
     const appliedCaps = marks < modelMarks ? caps.filter((c) => c.limit < modelMarks).map((c) => c.reason) : [];
 
     const positives = Array.isArray(parsed.positives)
