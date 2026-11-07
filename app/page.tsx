@@ -6,11 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 const LOADING_STEPS = [
   "Preparing economics response",
   "Checking command word requirements",
-  "Evaluating causal chains (A → B → C → D)",
+  "Evaluating causal chains & mark constraints",
   "Verifying Cambridge IGCSE terminology",
-  "Checking mark-scheme constraints",
-  "Analyzing economic actor logic",
-  "Scoring against 0455 rubric",
+  "Scoring against dynamic rubric",
   "Writing Chief Examiner feedback"
 ];
 
@@ -31,13 +29,25 @@ export default function EconomicsMarkerPage() {
 
   const handleMarkChange = (marks: number) => {
     setMaxMarks(marks);
-    if (marks === 2) setCommandWord("Define");
-    if (marks === 4) setCommandWord("Explain");
-    if (marks === 6) setCommandWord("Analyse");
-    if (marks === 8) setCommandWord("Discuss");
+    if (marks === 2) {
+      setCommandWord("Define");
+      setQuestion("Define what is meant by 'opportunity cost'.");
+      setEssay("Opportunity cost is defined as the next best alternative forgone when making a decision.");
+    } else if (marks === 4) {
+      setCommandWord("Explain");
+      setQuestion("Explain two causes of a shift in the demand curve for smartphones.");
+      setEssay("One cause is a rise in consumer disposable incomes, which increases purchasing power and shifts demand to the right. Another cause is a decrease in the price of complementary goods like headphones, making smartphones more attractive.");
+    } else if (marks === 6) {
+      setCommandWord("Analyse");
+      setQuestion("Analyse how the imposition of an indirect tax on a product with negative externalities, such as cigarettes, affects market equilibrium and welfare.");
+      setEssay("An indirect tax increases production costs for firms, causing the supply curve to shift left from S1 to S2. This creates a shortage at the original price, forcing equilibrium price to rise from P1 to P2 and quantity to fall from Q1 to Q2, internalising negative externalities.");
+    } else if (marks === 8) {
+      setCommandWord("Discuss");
+      setQuestion("Discuss whether the imposition of a maximum price on rented housing is beneficial to an economy.");
+      setEssay("A maximum price makes housing more affordable for low-income tenants, increasing consumer surplus in the short term. Conversely, it creates excess demand and shortages, leading to underground housing markets and reduced landlord incentives to maintain properties.");
+    }
   };
 
-  // Handle sequential loading checklist animation
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (viewState === 'loading') {
@@ -74,31 +84,26 @@ export default function EconomicsMarkerPage() {
         grade: "9 (A*)",
         rubricBand: "Top Band (Full Marks)",
         strengths: [
-          "Flawless multi-link causal chain (Cost of production → Supply shift → Equilibrium price/quantity).",
-          "Precise use of Cambridge terminology (demerit goods, deadweight loss, internalising externalities).",
-          "Adhered strictly to zero counter-arguments for a 6-mark analysis question."
+          `Flawless adherence to ${maxMarks}-mark Cambridge 0455 criteria.`,
+          "Precise economic terminology and logical structuring."
         ],
         weaknesses: [
-          "Ensure diagrammatic variables (P1, P2, Q1, Q2) are explicitly referenced in your concluding terminal link.",
-          "Keep explanations strictly one-sided as required by the 'Analyse' command word rule."
+          "Ensure terminal links explicitly reference exact question variables."
         ]
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#334155] font-['Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif] antialiased [text-rendering:optimizeLegibility] flex">
+    <div className="min-h-screen w-full bg-[#f8fafc] text-[#334155] font-['Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif] antialiased [text-rendering:optimizeLegibility] flex">
       
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
         body {
           font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
           text-rendering: optimizeLegibility;
         }
-
         .highlight-economic {
           background-color: rgba(249, 115, 22, 0.15);
           border-bottom: 2px solid rgba(249, 115, 22, 0.6);
@@ -148,7 +153,7 @@ export default function EconomicsMarkerPage() {
       <div className="flex-1 flex flex-col min-w-0 relative">
         
         {/* Top Header */}
-        <header className="h-16 px-8 bg-white border-b border-slate-200 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+        <header className="h-16 px-8 bg-white border-b border-slate-200 flex items-center justify-between sticky top-0 z-30 shadow-2xs w-full">
           <div className="flex items-center space-x-4">
             {viewState === 'results' ? (
               <button 
@@ -169,7 +174,7 @@ export default function EconomicsMarkerPage() {
           </div>
         </header>
 
-        {/* LOADING MODAL / OVERLAY ("The Generator") */}
+        {/* LOADING MODAL / OVERLAY */}
         <AnimatePresence>
           {viewState === 'loading' && (
             <motion.div
@@ -181,10 +186,9 @@ export default function EconomicsMarkerPage() {
               <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl p-8 shadow-xl space-y-6">
                 <div className="space-y-1 text-center">
                   <h3 className="text-base font-bold text-slate-900">Chief Examiner Economics Audit</h3>
-                  <p className="text-xs text-slate-500">Enforcing strict Cambridge 0455 mark-scheme rules...</p>
+                  <p className="text-xs text-slate-500">Enforcing strict Cambridge {maxMarks}-mark 0455 rules...</p>
                 </div>
 
-                {/* Text-Based Generator Checklist */}
                 <div className="space-y-3 bg-slate-50 p-5 rounded-xl border border-slate-100">
                   {LOADING_STEPS.map((step, idx) => {
                     const isCompleted = idx < loadingStepIndex;
@@ -219,18 +223,17 @@ export default function EconomicsMarkerPage() {
         </AnimatePresence>
 
         {/* WORKFLOW VIEWS */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-8">
+        <main className="flex-1 w-full max-w-7xl mx-auto p-8">
           
-          {/* 1. SUBMISSION VIEW (INPUT PAGE) */}
+          {/* 1. SUBMISSION VIEW */}
           {viewState === 'input' && (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6 w-full">
               
-              {/* Question Context Box & Mark Selector */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4 w-full">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="text-[11px] uppercase tracking-wider bg-orange-50 text-orange-700 px-3 py-1 rounded-lg border border-orange-200 font-bold">
-                      {commandWord} Question
+                      {commandWord} Question ({maxMarks}M)
                     </span>
                     <span className="text-xs text-slate-400 font-medium">Paper 2</span>
                   </div>
@@ -241,7 +244,7 @@ export default function EconomicsMarkerPage() {
                       <button
                         key={m}
                         onClick={() => handleMarkChange(m)}
-                        className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                        className={`px-3 py-1 rounded text-xs font-bold transition-all cursor-pointer ${
                           maxMarks === m ? 'bg-orange-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                         }`}
                       >
@@ -259,13 +262,12 @@ export default function EconomicsMarkerPage() {
                 />
               </div>
 
-              {/* Essay Text Editor & Input Field */}
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4 w-full">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2.5">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Candidate Response</span>
                     <span className="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
-                      {maxMarks === 6 ? 'AO3 Analysis Causal Chains' : `${maxMarks}-Mark Rubric`}
+                      {maxMarks}-Mark Rubric Active
                     </span>
                   </div>
                   <span className="text-xs text-slate-400 font-medium">
@@ -281,7 +283,6 @@ export default function EconomicsMarkerPage() {
                   className="w-full bg-slate-50/50 border border-slate-200 rounded-xl p-4 text-[15px] font-normal text-[#334155] placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all leading-[1.65] tracking-[-0.01em] resize-y"
                 />
 
-                {/* Primary Action Button placed at Bottom Right */}
                 <div className="flex justify-end pt-2">
                   <button
                     onClick={handleStartMarking}
@@ -297,37 +298,34 @@ export default function EconomicsMarkerPage() {
             </div>
           )}
 
-          {/* 3. RESULTS VIEW (AFTER-MARKING PAGE) */}
+          {/* 3. RESULTS VIEW */}
           {viewState === 'results' && feedback && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
               
-              {/* Left Pane: Submitted Economics Response with Highlighted Causal Links */}
-              <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4 w-full">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2.5">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Annotated Economics Response</span>
                     <span className="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
-                      Causal Chains Highlighted
+                      {maxMarks}-Mark Evaluation
                     </span>
                   </div>
                 </div>
 
                 <div className="text-[15px] font-normal text-[#334155] leading-[1.65] tracking-[-0.01em] space-y-4">
                   <p>
-                    An indirect tax is a tax on expenditure levied on demerit goods like cigarettes. When imposed, <span className="highlight-economic">it increases production costs for firms, causing the supply curve to shift upwards and to the left from S1 to S2</span>. This creates a shortage at the initial price, <span className="highlight-economic">forcing the market equilibrium price to rise from P1 to P2 and equilibrium quantity to fall from Q1 to Q2</span>. Consequently, higher prices reduce consumption toward the socially optimum level, internalising negative externalities and reducing deadweight loss.
+                    {essay}
                   </p>
                 </div>
               </div>
 
-              {/* Right Sidebar: Score Badge, Rubric Band, and Strengths/Weaknesses Tabbed Panel */}
-              <div className="lg:col-span-5 space-y-6">
+              <div className="lg:col-span-5 space-y-6 w-full">
                 
-                {/* Score & Rubric Band Badge Card */}
                 <div className="bg-white border border-sky-200 rounded-2xl overflow-hidden shadow-xs">
                   <div className="bg-[#0284c7] px-6 py-4 text-white flex items-center justify-between">
                     <div>
                       <span className="text-[11px] font-bold uppercase tracking-widest opacity-90">Estimated Mark</span>
-                      <h3 className="text-lg font-extrabold tracking-wide">Cambridge 0455 Audit</h3>
+                      <h3 className="text-lg font-extrabold tracking-wide">Cambridge 0455 Audit ({maxMarks}M)</h3>
                     </div>
                     <div className="text-3xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
                       {feedback.score}
@@ -341,12 +339,11 @@ export default function EconomicsMarkerPage() {
                   </div>
                 </div>
 
-                {/* Tabbed Panel for Strengths and Weaknesses */}
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
                   <div className="flex space-x-2 border-b border-slate-100 pb-3">
                     <button
                       onClick={() => setActiveTab('strengths')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         activeTab === 'strengths'
                           ? 'bg-emerald-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -356,7 +353,7 @@ export default function EconomicsMarkerPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab('weaknesses')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         activeTab === 'weaknesses'
                           ? 'bg-orange-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
