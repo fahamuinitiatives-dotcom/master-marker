@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function EconomicsMarkerPage() {
   const [question, setQuestion] = useState(
@@ -9,9 +8,19 @@ export default function EconomicsMarkerPage() {
   );
   const [maxMarks, setMaxMarks] = useState(6);
   const [commandWord, setCommandWord] = useState("Analyse");
-  const [answer, setAnswer] = useState('');
+  const [answer, setAnswer] = useState(
+    "An indirect tax is a tax on expenditure levied on demerit goods like cigarettes. When imposed, it increases production costs for firms, causing the supply curve to shift upwards and to the left from S1 to S2. This creates a shortage at the original price, forcing the market equilibrium price to rise from P1 to P2 and equilibrium quantity to fall from Q1 to Q2. Consequently, higher prices reduce consumption toward the socially optimum level, internalising negative externalities and reducing deadweight loss."
+  );
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
+
+  const handleMarkChange = (marks: number) => {
+    setMaxMarks(marks);
+    if (marks === 2) setCommandWord("Define");
+    if (marks === 4) setCommandWord("Explain");
+    if (marks === 6) setCommandWord("Analyse");
+    if (marks === 8) setCommandWord("Discuss");
+  };
 
   const handleMarking = async () => {
     if (!answer.trim()) return;
@@ -22,210 +31,268 @@ export default function EconomicsMarkerPage() {
       const res = await fetch('/api/marker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question,
-          maxMarks,
-          commandWord,
-          studentAnswer: answer,
-          subject: "Cambridge IGCSE Economics (0455)"
-        }),
+        body: JSON.stringify({ question, maxMarks, commandWord, studentAnswer: answer }),
       });
       const data = await res.json();
       setFeedback(data);
     } catch (err) {
       console.error(err);
-      // Fallback structural feedback for instant testing if API is local
+      // Fallback matching MarkMe structure exactly
       setFeedback({
-        score: "5 / 6",
-        breakdown: [
-          "Accurate causal chain identifying indirect tax shifting supply left (S1 to S2).",
-          "Correctly tracked price increase (P1 to P2) and quantity decrease (Q1 to Q2).",
-          "Vague phrasing noted: Avoid general clichés like 'improves social welfare' without specifying market failure correction."
+        score: "6 / 6",
+        grade: "A*",
+        summary: "Your economic analysis demonstrates rigorous multi-link causal chains (AO3), correctly translating cost shifts into market equilibrium adjustments without unnecessary evaluation padding.",
+        positives: [
+          "Flawless multi-link causal chain (Cost of production $\rightarrow$ Supply shift $\rightarrow$ Equilibrium price/quantity).",
+          "Precise use of Cambridge terminology (demerit goods, deadweight loss, internalising externalities).",
+          "Adhered strictly to zero counter-arguments for a 6-mark analysis question."
         ],
-        modelParagraph: "An indirect tax increases the production costs for firms, shifting the supply curve upwards and to the left from S1 to S2. This creates a shortage at the original price, causing the market equilibrium price to rise from P1 to P2 and equilibrium quantity to fall from Q1 to Q2. Consequently, higher prices reduce consumption of the demerit good closer to the socially optimum level, internalising negative externalities and reducing deadweight loss."
+        suggestions: [
+          {
+            title: "Diagrammatic Labelling",
+            description: "Enhance your terminal link by explicitly referencing equilibrium price (P1 to P2) and quantity (Q1 to Q2) in your concluding sentence.",
+            model: "Consequently, the rise in price from P1 to P2 and fall in quantity from Q1 to Q2 successfully curtails consumption of the demerit good."
+          }
+        ]
       });
     } finally {
       setLoading(false);
     }
   };
 
+  const wordCount = answer.trim().split(/\s+/).filter(Boolean).length;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-500/30">
-      {/* Top Navigation Bar - Pure Economics Focus */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
-            E
+    <div className="min-h-screen bg-[#f4f4f5] text-zinc-900 font-sans antialiased flex">
+      
+      {/* 1. Left Dark Sidebar (MarkMe Navigation) */}
+      <aside className="w-64 bg-[#18181b] text-zinc-300 flex flex-col justify-between border-r border-zinc-800 shrink-0 select-none">
+        <div>
+          {/* Logo Brand */}
+          <div className="h-16 px-6 flex items-center space-x-2.5 border-b border-zinc-800/80">
+            <div className="h-6 w-6 rounded bg-orange-500 flex items-center justify-center text-white font-bold text-xs">
+              m
+            </div>
+            <span className="font-semibold tracking-tight text-white text-sm">markme</span>
           </div>
-          <div>
-            <h1 className="text-base font-semibold tracking-tight text-white">
-              Master Marker <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 ml-2">Economics (0455)</span>
-            </h1>
-            <p className="text-xs text-slate-400">Chief Examiner AI Engine • Strict Mark Scheme Enforcement</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <span className="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-medium flex items-center space-x-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Groq AI Active</span>
-          </span>
-        </div>
-      </header>
 
-      {/* Main Workspace Split Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Navigation Items */}
+          <div className="p-3 space-y-1">
+            <div className="px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-semibold">
+              Active Subject
+            </div>
+            <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-800/80 text-white text-xs font-medium border border-zinc-700/50 shadow-xs">
+              <span className="flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                <span>Economics (0455)</span>
+              </span>
+              <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded font-mono">IGCSE</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Sidebar Footer / Add Subjects */}
+        <div className="p-4 border-t border-zinc-800/80 space-y-3">
+          <button className="w-full py-2 px-3 rounded-lg border border-dashed border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 text-xs font-mono transition-all flex items-center justify-center space-x-1.5">
+            <span>+ Add Subjects</span>
+          </button>
+          <div className="flex items-center space-x-3 px-2">
+            <div className="w-7 h-7 rounded-full bg-zinc-700 text-white flex items-center justify-center text-xs font-bold font-mono">
+              F
+            </div>
+            <div className="text-xs truncate">
+              <div className="text-white font-medium">Student Workspace</div>
+              <div className="text-zinc-500 text-[10px] font-mono">Zone 3 • Year 11</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* 2. Main Content Wrapper */}
+      <div className="flex-1 flex flex-col min-w-0">
         
-        {/* Left Column: Question Prompt & Chief Examiner Rules */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl backdrop-blur-sm relative overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-md">
-                {commandWord} Question
-              </span>
-              <span className="text-xs font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md">
-                {maxMarks} Marks
-              </span>
-            </div>
-
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="w-full bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 font-medium focus:outline-none focus:border-blue-500 resize-none h-28"
-              placeholder="Enter Cambridge Economics question..."
-            />
-
-            <div className="border-t border-slate-800/80 pt-4 mt-4">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                Strict {commandWord} Rulebook ({maxMarks} Marks):
-              </h3>
-              <ul className="text-xs text-slate-300 space-y-2">
-                {maxMarks === 6 && (
-                  <>
-                    <li className="flex items-start space-x-2">
-                      <span className="text-blue-400 font-bold">•</span>
-                      <span>Require 2 to 3 fully developed, one-sided multi-link causal chains ($A \rightarrow B \rightarrow C \rightarrow D$).</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="text-rose-400 font-bold">✕</span>
-                      <span><strong>STRICTLY ZERO evaluation</strong> or transitional words like &quot;however&quot;.</span>
-                    </li>
-                  </>
-                )}
-                {maxMarks === 8 && (
-                  <>
-                    <li className="flex items-start space-x-2">
-                      <span className="text-blue-400 font-bold">•</span>
-                      <span>Structure: Exactly 2 FOR chains + 2 AGAINST chains using PAI format.</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="text-rose-400 font-bold">✕</span>
-                      <span><strong>Zero conclusion paragraphs</strong> (wastes time, awards 0 extra marks).</span>
-                    </li>
-                  </>
-                )}
-                <li className="flex items-start space-x-2">
-                  <span className="text-amber-400 font-bold">⚠</span>
-                  <span>Zero vague clichés (&quot;improves living standards&quot;). Use precise economic variables.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Student Answer Canvas & Chief Examiner Feedback */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-medium text-slate-300">Your Structured Answer</label>
-              <span className="text-xs text-slate-500 font-mono">
-                {answer.trim().split(/\s+/).filter(Boolean).length} words
-              </span>
-            </div>
-
-            <textarea
-              rows={8}
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Draft your economic analysis following precise causal chains ($A \rightarrow B \rightarrow C \rightarrow D$)..."
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-y custom-scrollbar font-mono leading-relaxed"
-            />
-
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={handleMarking}
-                disabled={loading || !answer.trim()}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-medium px-6 py-2.5 rounded-xl text-sm shadow-lg shadow-blue-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Chief Examiner Reviewing...</span>
-                  </>
-                ) : (
-                  <span>Submit to Chief Examiner</span>
-                )}
-              </button>
-            </div>
+        {/* Top Header Bar */}
+        <header className="h-16 px-8 bg-white border-b border-zinc-200 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center space-x-4">
+            <button className="text-xs font-mono text-zinc-500 hover:text-zinc-900 transition-colors flex items-center space-x-1">
+              <span>← Back to History</span>
+            </button>
           </div>
 
-          {/* Mandatory Feedback Protocol Display */}
-          <AnimatePresence>
-            {feedback && (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                className="bg-slate-900/95 border border-blue-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-md space-y-5"
-              >
-                {/* 1. Numerical Score at the Top */}
-                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-4">
+            <button className="text-xs font-mono text-zinc-600 hover:text-zinc-900 px-3 py-1.5 rounded-md border border-zinc-200 bg-white hover:bg-zinc-50 transition-all flex items-center space-x-1.5 shadow-2xs">
+              <span>Download PDF</span>
+            </button>
+            <div className="text-xs font-mono text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-md border border-zinc-200">
+              0 left — refills in <span className="text-zinc-800 font-semibold">22h</span>
+            </div>
+            <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 py-1.5 rounded-md text-xs font-mono transition-all shadow-xs flex items-center space-x-1">
+              <span>Upgrade</span>
+              <span className="text-[10px]">⚡</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Workspace Split Layout */}
+        <main className="flex-1 max-w-7xl w-full mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Left Column: Question & Candidate Response Canvas */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Question Card */}
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[11px] font-mono uppercase tracking-wider bg-orange-50 text-orange-700 px-2.5 py-1 rounded border border-orange-200 font-semibold">
+                    {commandWord} Question
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400">Paper 2</span>
+                </div>
+
+                {/* Mark Selector Pills */}
+                <div className="flex space-x-1 bg-zinc-100 p-1 rounded-lg border border-zinc-200">
+                  {[2, 4, 6, 8].map((m) => (
+                    <button
+                      key={m}
+                      onClick={() => handleMarkChange(m)}
+                      className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition-all ${
+                        maxMarks === m ? 'bg-orange-600 text-white shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
+                      }`}
+                    >
+                      {m}M
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                rows={3}
+                className="w-full bg-transparent border-0 text-base font-semibold text-zinc-900 placeholder-zinc-400 focus:outline-none resize-none leading-snug"
+              />
+            </div>
+
+            {/* Candidate Response Card with Inline Criteria Badges */}
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-mono font-semibold text-zinc-800 uppercase tracking-wider">Candidate Response</span>
+                  <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">AO3 Analysis</span>
+                </div>
+                <span className="text-xs font-mono text-zinc-400">{wordCount} words</span>
+              </div>
+
+              <textarea
+                rows={10}
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                placeholder="Draft your structured economic analysis..."
+                className="w-full bg-zinc-50/50 border border-zinc-200 rounded-lg p-4 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-mono leading-relaxed resize-y"
+              />
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-xs font-mono text-zinc-500">
+                  Rule: {maxMarks === 6 ? "Strict 1-sided causal chain (No 'however')" : "Chief Examiner Mode Active"}
+                </div>
+                <button
+                  onClick={handleMarking}
+                  disabled={loading || !answer.trim()}
+                  className="bg-zinc-900 hover:bg-orange-600 text-white font-medium px-6 py-2.5 rounded-lg text-xs uppercase tracking-wider transition-all disabled:opacity-40 font-mono shadow-2xs flex items-center space-x-2"
+                >
+                  {loading ? (
+                    <>
+                      <span className="animate-spin text-orange-400">◌</span>
+                      <span>Auditing...</span>
+                    </>
+                  ) : (
+                    <span>Run Chief Examiner Audit</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: MarkMe Feedback & Suggestion Cards */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {feedback ? (
+              <>
+                {/* Estimated Mark Card */}
+                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-blue-400 font-semibold uppercase tracking-wider">Cambridge 0455 Assessment</span>
-                    <h3 className="text-lg font-bold text-white mt-0.5">Chief Examiner Grade</h3>
+                    <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-400">Estimated Mark</span>
+                    <h3 className="text-sm font-bold text-zinc-900 mt-0.5">Cambridge Grade</h3>
                   </div>
-                  <div className="text-right bg-blue-500/10 border border-blue-500/20 px-4 py-1.5 rounded-xl">
-                    <span className="text-2xl font-extrabold text-blue-400">{feedback.score || '5 / 6'}</span>
+                  <div className="text-right">
+                    <div className="text-2xl font-extrabold text-orange-600 font-mono">{feedback.score}</div>
+                    <div className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">
+                      {feedback.grade} Standard
+                    </div>
                   </div>
                 </div>
 
-                {/* 2. Micro-Slippage Breakdown */}
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                    Micro-Slippage & Mark Deductions:
-                  </h4>
+                {/* Feedback Summary Card */}
+                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-3">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-orange-600 font-semibold">Feedback Summary</span>
+                  <p className="text-xs text-zinc-700 leading-relaxed font-mono">
+                    {feedback.summary}
+                  </p>
+                </div>
+
+                {/* Positives Card */}
+                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-3">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 font-semibold flex items-center space-x-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Positives</span>
+                  </span>
                   <ul className="space-y-2">
-                    {Array.isArray(feedback.breakdown) ? (
-                      feedback.breakdown.map((item: string, idx: number) => (
-                        <li key={idx} className="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 flex items-start space-x-2">
-                          <span className="text-amber-400 font-bold">•</span>
-                          <span>{item}</span>
-                        </li>
-                      ))
-                    ) : (
-                      <p className="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
-                        {feedback.breakdown}
-                      </p>
-                    )}
+                    {feedback.positives?.map((pos: string, idx: number) => (
+                      <li key={idx} className="text-xs text-zinc-700 font-mono flex items-start space-x-2 bg-zinc-50 p-2.5 rounded border border-zinc-100">
+                        <span className="text-emerald-500 font-bold">✓</span>
+                        <span className="leading-relaxed">{pos}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
 
-                {/* 3. Upgraded Model Paragraph */}
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">
-                    Upgraded Full-Mark Standard (PAI / Causal Chain):
-                  </h4>
-                  <div className="text-xs text-slate-200 bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/20 font-mono leading-relaxed">
-                    {feedback.modelParagraph}
+                {/* Suggestions Card with "Show Me" Button */}
+                <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-2xs space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-orange-700 font-semibold">Suggestions</span>
+                    <span className="text-[10px] font-mono bg-orange-100 text-orange-800 px-2 py-0.5 rounded">Actionable</span>
                   </div>
+                  {feedback.suggestions?.map((sug: any, idx: number) => (
+                    <div key={idx} className="space-y-3">
+                      <p className="text-xs font-mono text-zinc-700 leading-relaxed">
+                        {sug.description}
+                      </p>
+                      <div className="bg-zinc-50 p-4 rounded-lg border border-orange-200 text-xs font-mono text-zinc-800 space-y-2 shadow-2xs">
+                        <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wide">Upgraded Model Standard:</div>
+                        <div className="leading-relaxed text-zinc-700">{sug.model}</div>
+                      </div>
+                      <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-xs font-mono transition-all shadow-2xs flex items-center justify-center space-x-1.5">
+                        <span>✨ Show me</span>
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              </motion.div>
+              </>
+            ) : (
+              <div className="bg-white border border-dashed border-zinc-300 rounded-xl p-12 text-center space-y-3 shadow-2xs">
+                <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mx-auto font-mono text-sm font-bold">
+                  m
+                </div>
+                <h3 className="text-sm font-semibold text-zinc-800">Ready for Chief Examiner Audit</h3>
+                <p className="text-xs text-zinc-500 font-mono max-w-xs mx-auto">
+                  Submit your structured response on the left to generate your MarkMe grade breakdown and actionable suggestions.
+                </p>
+              </div>
             )}
-          </AnimatePresence>
-        </div>
-      </main>
+
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
