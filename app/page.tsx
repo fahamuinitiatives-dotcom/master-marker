@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function EconomicsMarkerPage() {
   const [question, setQuestion] = useState(
@@ -37,13 +38,13 @@ export default function EconomicsMarkerPage() {
       setFeedback(data);
     } catch (err) {
       console.error(err);
-      // Fallback matching MarkMe structure exactly
+      // Fallback matching exact MarkMe structure
       setFeedback({
         score: "6 / 6",
         grade: "A*",
         summary: "Your economic analysis demonstrates rigorous multi-link causal chains (AO3), correctly translating cost shifts into market equilibrium adjustments without unnecessary evaluation padding.",
         positives: [
-          "Flawless multi-link causal chain (Cost of production $\rightarrow$ Supply shift $\rightarrow$ Equilibrium price/quantity).",
+          "Flawless multi-link causal chain (Cost of production → Supply shift → Equilibrium price/quantity).",
           "Precise use of Cambridge terminology (demerit goods, deadweight loss, internalising externalities).",
           "Adhered strictly to zero counter-arguments for a 6-mark analysis question."
         ],
@@ -63,12 +64,11 @@ export default function EconomicsMarkerPage() {
   const wordCount = answer.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#f4f4f5] text-zinc-900 font-sans antialiased flex">
+    <div className="min-h-screen bg-[#fafafa] text-zinc-900 font-sans antialiased flex">
       
-      {/* 1. Left Dark Sidebar (MarkMe Navigation) */}
+      {/* Left Sidebar */}
       <aside className="w-64 bg-[#18181b] text-zinc-300 flex flex-col justify-between border-r border-zinc-800 shrink-0 select-none">
         <div>
-          {/* Logo Brand */}
           <div className="h-16 px-6 flex items-center space-x-2.5 border-b border-zinc-800/80">
             <div className="h-6 w-6 rounded bg-orange-500 flex items-center justify-center text-white font-bold text-xs">
               m
@@ -76,12 +76,11 @@ export default function EconomicsMarkerPage() {
             <span className="font-semibold tracking-tight text-white text-sm">markme</span>
           </div>
 
-          {/* Navigation Items */}
           <div className="p-3 space-y-1">
             <div className="px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-semibold">
               Active Subject
             </div>
-            <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-800/80 text-white text-xs font-medium border border-zinc-700/50 shadow-xs">
+            <button className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-zinc-800/80 text-white text-xs font-medium border border-zinc-700/50 shadow-2xs">
               <span className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-orange-500"></span>
                 <span>Economics (0455)</span>
@@ -91,7 +90,6 @@ export default function EconomicsMarkerPage() {
           </div>
         </div>
 
-        {/* Sidebar Footer / Add Subjects */}
         <div className="p-4 border-t border-zinc-800/80 space-y-3">
           <button className="w-full py-2 px-3 rounded-lg border border-dashed border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 text-xs font-mono transition-all flex items-center justify-center space-x-1.5">
             <span>+ Add Subjects</span>
@@ -108,27 +106,20 @@ export default function EconomicsMarkerPage() {
         </div>
       </aside>
 
-      {/* 2. Main Content Wrapper */}
+      {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col min-w-0">
         
-        {/* Top Header Bar */}
+        {/* Top Header Bar (Cleaned up: No refills or upgrade clutter) */}
         <header className="h-16 px-8 bg-white border-b border-zinc-200 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center space-x-4">
-            <button className="text-xs font-mono text-zinc-500 hover:text-zinc-900 transition-colors flex items-center space-x-1">
+            <button className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors flex items-center space-x-1">
               <span>← Back to History</span>
             </button>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <button className="text-xs font-mono text-zinc-600 hover:text-zinc-900 px-3 py-1.5 rounded-md border border-zinc-200 bg-white hover:bg-zinc-50 transition-all flex items-center space-x-1.5 shadow-2xs">
+          <div className="flex items-center space-x-3">
+            <button className="text-xs font-medium text-zinc-700 hover:text-zinc-900 px-3.5 py-1.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 transition-all shadow-2xs flex items-center space-x-1.5">
               <span>Download PDF</span>
-            </button>
-            <div className="text-xs font-mono text-zinc-500 bg-zinc-100 px-3 py-1.5 rounded-md border border-zinc-200">
-              0 left — refills in <span className="text-zinc-800 font-semibold">22h</span>
-            </div>
-            <button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 py-1.5 rounded-md text-xs font-mono transition-all shadow-xs flex items-center space-x-1">
-              <span>Upgrade</span>
-              <span className="text-[10px]">⚡</span>
             </button>
           </div>
         </header>
@@ -136,7 +127,7 @@ export default function EconomicsMarkerPage() {
         {/* Workspace Split Layout */}
         <main className="flex-1 max-w-7xl w-full mx-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Question & Candidate Response Canvas */}
+          {/* Left Column: Question & Candidate Response */}
           <div className="lg:col-span-7 space-y-6">
             
             {/* Question Card */}
@@ -146,10 +137,9 @@ export default function EconomicsMarkerPage() {
                   <span className="text-[11px] font-mono uppercase tracking-wider bg-orange-50 text-orange-700 px-2.5 py-1 rounded border border-orange-200 font-semibold">
                     {commandWord} Question
                   </span>
-                  <span className="text-xs font-mono text-zinc-400">Paper 2</span>
+                  <span className="text-xs font-sans text-zinc-400 font-medium">Paper 2</span>
                 </div>
 
-                {/* Mark Selector Pills */}
                 <div className="flex space-x-1 bg-zinc-100 p-1 rounded-lg border border-zinc-200">
                   {[2, 4, 6, 8].map((m) => (
                     <button
@@ -169,18 +159,18 @@ export default function EconomicsMarkerPage() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 rows={3}
-                className="w-full bg-transparent border-0 text-base font-semibold text-zinc-900 placeholder-zinc-400 focus:outline-none resize-none leading-snug"
+                className="w-full bg-transparent border-0 text-base font-normal text-zinc-900 placeholder-zinc-400 focus:outline-none resize-none leading-snug"
               />
             </div>
 
-            {/* Candidate Response Card with Inline Criteria Badges */}
+            {/* Candidate Response Card */}
             <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-mono font-semibold text-zinc-800 uppercase tracking-wider">Candidate Response</span>
+                  <span className="text-xs font-semibold text-zinc-800 uppercase tracking-wider">Candidate Response</span>
                   <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">AO3 Analysis</span>
                 </div>
-                <span className="text-xs font-mono text-zinc-400">{wordCount} words</span>
+                <span className="text-xs font-sans text-zinc-400 font-medium">{wordCount} words</span>
               </div>
 
               <textarea
@@ -188,17 +178,17 @@ export default function EconomicsMarkerPage() {
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="Draft your structured economic analysis..."
-                className="w-full bg-zinc-50/50 border border-zinc-200 rounded-lg p-4 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-mono leading-relaxed resize-y"
+                className="w-full bg-zinc-50/50 border border-zinc-200 rounded-lg p-4 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all leading-relaxed resize-y"
               />
 
               <div className="flex items-center justify-between pt-2">
-                <div className="text-xs font-mono text-zinc-500">
+                <div className="text-xs text-zinc-500 font-medium">
                   Rule: {maxMarks === 6 ? "Strict 1-sided causal chain (No 'however')" : "Chief Examiner Mode Active"}
                 </div>
                 <button
                   onClick={handleMarking}
                   disabled={loading || !answer.trim()}
-                  className="bg-zinc-900 hover:bg-orange-600 text-white font-medium px-6 py-2.5 rounded-lg text-xs uppercase tracking-wider transition-all disabled:opacity-40 font-mono shadow-2xs flex items-center space-x-2"
+                  className="bg-zinc-900 hover:bg-orange-600 text-white font-medium px-6 py-2.5 rounded-lg text-xs tracking-wide transition-all disabled:opacity-40 shadow-2xs flex items-center space-x-2"
                 >
                   {loading ? (
                     <>
@@ -213,82 +203,97 @@ export default function EconomicsMarkerPage() {
             </div>
           </div>
 
-          {/* Right Column: MarkMe Feedback & Suggestion Cards */}
+          {/* Right Column: Smooth Animated Feedback Cards */}
           <div className="lg:col-span-5 space-y-6">
             
-            {feedback ? (
-              <>
-                {/* Estimated Mark Card */}
-                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-400">Estimated Mark</span>
-                    <h3 className="text-sm font-bold text-zinc-900 mt-0.5">Cambridge Grade</h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-extrabold text-orange-600 font-mono">{feedback.score}</div>
-                    <div className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">
-                      {feedback.grade} Standard
+            <AnimatePresence mode="wait">
+              {feedback ? (
+                <motion.div
+                  key="feedback-results"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="space-y-6"
+                >
+                  {/* Estimated Mark Card */}
+                  <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-mono uppercase tracking-widest text-zinc-400">Estimated Mark</span>
+                      <h3 className="text-sm font-semibold text-zinc-900 mt-0.5">Cambridge Grade</h3>
                     </div>
-                  </div>
-                </div>
-
-                {/* Feedback Summary Card */}
-                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-3">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-orange-600 font-semibold">Feedback Summary</span>
-                  <p className="text-xs text-zinc-700 leading-relaxed font-mono">
-                    {feedback.summary}
-                  </p>
-                </div>
-
-                {/* Positives Card */}
-                <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-3">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 font-semibold flex items-center space-x-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    <span>Positives</span>
-                  </span>
-                  <ul className="space-y-2">
-                    {feedback.positives?.map((pos: string, idx: number) => (
-                      <li key={idx} className="text-xs text-zinc-700 font-mono flex items-start space-x-2 bg-zinc-50 p-2.5 rounded border border-zinc-100">
-                        <span className="text-emerald-500 font-bold">✓</span>
-                        <span className="leading-relaxed">{pos}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Suggestions Card with "Show Me" Button */}
-                <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-orange-700 font-semibold">Suggestions</span>
-                    <span className="text-[10px] font-mono bg-orange-100 text-orange-800 px-2 py-0.5 rounded">Actionable</span>
-                  </div>
-                  {feedback.suggestions?.map((sug: any, idx: number) => (
-                    <div key={idx} className="space-y-3">
-                      <p className="text-xs font-mono text-zinc-700 leading-relaxed">
-                        {sug.description}
-                      </p>
-                      <div className="bg-zinc-50 p-4 rounded-lg border border-orange-200 text-xs font-mono text-zinc-800 space-y-2 shadow-2xs">
-                        <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wide">Upgraded Model Standard:</div>
-                        <div className="leading-relaxed text-zinc-700">{sug.model}</div>
+                    <div className="text-right">
+                      <div className="text-2xl font-extrabold text-orange-600 font-mono">{feedback.score}</div>
+                      <div className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">
+                        {feedback.grade} Standard
                       </div>
-                      <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-xs font-mono transition-all shadow-2xs flex items-center justify-center space-x-1.5">
-                        <span>✨ Show me</span>
-                      </button>
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="bg-white border border-dashed border-zinc-300 rounded-xl p-12 text-center space-y-3 shadow-2xs">
-                <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mx-auto font-mono text-sm font-bold">
-                  m
-                </div>
-                <h3 className="text-sm font-semibold text-zinc-800">Ready for Chief Examiner Audit</h3>
-                <p className="text-xs text-zinc-500 font-mono max-w-xs mx-auto">
-                  Submit your structured response on the left to generate your MarkMe grade breakdown and actionable suggestions.
-                </p>
-              </div>
-            )}
+                  </div>
+
+                  {/* Feedback Summary Card */}
+                  <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-2">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-orange-600 font-semibold">Feedback Summary</span>
+                    <p className="text-xs text-zinc-700 leading-relaxed font-sans">
+                      {feedback.summary}
+                    </p>
+                  </div>
+
+                  {/* Positives Card */}
+                  <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xs space-y-3">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-emerald-700 font-semibold flex items-center space-x-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span>Positives</span>
+                    </span>
+                    <ul className="space-y-2">
+                      {feedback.positives?.map((pos: string, idx: number) => (
+                        <li key={idx} className="text-xs text-zinc-700 font-sans flex items-start space-x-2 bg-zinc-50 p-2.5 rounded border border-zinc-100">
+                          <span className="text-emerald-500 font-bold">✓</span>
+                          <span className="leading-relaxed">{pos}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Suggestions Card */}
+                  <div className="bg-white border border-orange-200 rounded-xl p-6 shadow-2xs space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-orange-700 font-semibold">Suggestions</span>
+                      <span className="text-[10px] font-mono bg-orange-100 text-orange-800 px-2 py-0.5 rounded">Actionable</span>
+                    </div>
+                    {feedback.suggestions?.map((sug: any, idx: number) => (
+                      <div key={idx} className="space-y-3">
+                        <p className="text-xs text-zinc-700 leading-relaxed font-sans">
+                          {sug.description}
+                        </p>
+                        <div className="bg-zinc-50 p-4 rounded-lg border border-orange-200 text-xs text-zinc-800 space-y-2 shadow-2xs">
+                          <div className="text-[10px] font-mono font-bold text-orange-600 uppercase tracking-wide">Upgraded Model Standard:</div>
+                          <div className="leading-relaxed text-zinc-700 font-sans">{sug.model}</div>
+                        </div>
+                        <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-xs transition-all shadow-2xs flex items-center justify-center space-x-1.5">
+                          <span>✨ Show me</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty-state"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="bg-white border border-dashed border-zinc-300 rounded-xl p-12 text-center space-y-3 shadow-2xs"
+                >
+                  <div className="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mx-auto font-mono text-sm font-bold">
+                    m
+                  </div>
+                  <h3 className="text-sm font-semibold text-zinc-800">Ready for Chief Examiner Audit</h3>
+                  <p className="text-xs text-zinc-500 max-w-xs mx-auto">
+                    Submit your structured response on the left to generate your grade breakdown and actionable suggestions.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
           </div>
         </main>
