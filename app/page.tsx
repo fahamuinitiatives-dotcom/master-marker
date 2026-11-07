@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const LOADING_STEPS = [
   "Preparing economics response",
   "Checking command word requirements",
-  "Evaluating causal chains & mark constraints",
+  "Evaluating PAI chains & mark constraints",
   "Verifying Cambridge IGCSE terminology",
   "Scoring against dynamic rubric",
   "Writing Chief Examiner feedback"
@@ -15,17 +15,17 @@ const LOADING_STEPS = [
 export default function EconomicsMarkerPage() {
   const [viewState, setViewState] = useState<'input' | 'loading' | 'results'>('input');
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<'strengths' | 'weaknesses'>('strengths');
 
   const [question, setQuestion] = useState(
-    "Analyse how the imposition of an indirect tax on a product with negative externalities, such as cigarettes, affects market equilibrium and welfare."
+    "Discuss whether the imposition of a maximum price on rented housing is beneficial to an economy."
   );
-  const [maxMarks, setMaxMarks] = useState(6);
-  const [commandWord, setCommandWord] = useState("Analyse");
+  const [maxMarks, setMaxMarks] = useState(8);
+  const [commandWord, setCommandWord] = useState("Discuss");
   const [essay, setEssay] = useState(
-    "An indirect tax is a tax on expenditure levied on demerit goods like cigarettes. When imposed, it increases production costs for firms, causing the supply curve to shift upwards and to the left from S1 to S2. This creates a shortage at the initial price, forcing the market equilibrium price to rise from P1 to P2 and equilibrium quantity to fall from Q1 to Q2. Consequently, higher prices reduce consumption toward the socially optimum level, internalising negative externalities and reducing deadweight loss."
+    "A maximum price makes housing more affordable for low-income tenants, increasing consumer surplus in the short term. Landlords are legally prohibited from charging above this price, which prevents exploitation during housing shortages.\n\nConversely, it creates excess demand and severe housing shortages in the long run. Because rental yields are artificially suppressed, landlord incentives to maintain or build new properties fall, leading to lower housing quality and the emergence of underground black markets."
   );
   const [feedback, setFeedback] = useState<any>(null);
+  const [showExactMarks, setShowExactMarks] = useState(false);
 
   const handleMarkChange = (marks: number) => {
     setMaxMarks(marks);
@@ -36,15 +36,15 @@ export default function EconomicsMarkerPage() {
     } else if (marks === 4) {
       setCommandWord("Explain");
       setQuestion("Explain two causes of a shift in the demand curve for smartphones.");
-      setEssay("One cause is a rise in consumer disposable incomes, which increases purchasing power and shifts demand to the right. Another cause is a decrease in the price of complementary goods like headphones, making smartphones more attractive.");
+      setEssay("One cause is a rise in consumer disposable incomes, which increases purchasing power and shifts demand to the right.\n\nAnother cause is a decrease in the price of complementary goods like headphones, making smartphones more attractive.");
     } else if (marks === 6) {
       setCommandWord("Analyse");
       setQuestion("Analyse how the imposition of an indirect tax on a product with negative externalities, such as cigarettes, affects market equilibrium and welfare.");
-      setEssay("An indirect tax increases production costs for firms, causing the supply curve to shift left from S1 to S2. This creates a shortage at the original price, forcing equilibrium price to rise from P1 to P2 and quantity to fall from Q1 to Q2, internalising negative externalities.");
+      setEssay("An indirect tax increases production costs for firms, causing the supply curve to shift left from S1 to S2.\n\nThis creates a shortage at the original price, forcing equilibrium price to rise from P1 to P2 and quantity to fall from Q1 to Q2, internalising negative externalities.");
     } else if (marks === 8) {
       setCommandWord("Discuss");
       setQuestion("Discuss whether the imposition of a maximum price on rented housing is beneficial to an economy.");
-      setEssay("A maximum price makes housing more affordable for low-income tenants, increasing consumer surplus in the short term. Conversely, it creates excess demand and shortages, leading to underground housing markets and reduced landlord incentives to maintain properties.");
+      setEssay("A maximum price makes housing more affordable for low-income tenants, increasing consumer surplus in the short term. Landlords are legally prohibited from charging above this price, which prevents exploitation during housing shortages.\n\nConversely, it creates excess demand and severe housing shortages in the long run. Because rental yields are artificially suppressed, landlord incentives to maintain or build new properties fall, leading to lower housing quality and the emergence of underground black markets.");
     }
   };
 
@@ -54,11 +54,11 @@ export default function EconomicsMarkerPage() {
       if (loadingStepIndex < LOADING_STEPS.length - 1) {
         timer = setTimeout(() => {
           setLoadingStepIndex((prev) => prev + 1);
-        }, 300);
+        }, 280);
       } else {
         timer = setTimeout(() => {
           setViewState('results');
-        }, 400);
+        }, 350);
       }
     }
     return () => clearTimeout(timer);
@@ -80,19 +80,23 @@ export default function EconomicsMarkerPage() {
     } catch (err) {
       console.error(err);
       setFeedback({
-        score: `${maxMarks} / ${maxMarks}`,
-        grade: "9 (A*)",
-        rubricBand: "Top Band (Full Marks)",
-        strengths: [
-          `Flawless adherence to ${maxMarks}-mark Cambridge 0455 criteria.`,
-          "Precise economic terminology and logical structuring."
+        score: `4 / ${maxMarks}`,
+        grade: "Grade 5 (C)",
+        summary: `Your response lacks the required structural depth for an 8-mark question. Only 2 of the mandatory 4 PAI chains were developed, leading to a major mark deduction under Cambridge 0455 rubrics.`,
+        positives: [
+          "Identified basic economic effects (consumer surplus and supply suppression)."
         ],
-        weaknesses: [
-          "Ensure terminal links explicitly reference exact question variables."
+        suggestions: [
+          {
+            description: "To score above 4/8, you must include 2 full FOR chains and 2 full AGAINST chains following the Point → Analysis → Impact (PAI) formula with zero concluding paragraphs.",
+            model: "Paragraph 1 (FOR): Point 1 + Analysis + Impact. Point 2 + Analysis + Impact.\nParagraph 2 (AGAINST): Conversely... Point 1 + Analysis + Impact. Point 2 + Analysis + Impact."
+          }
         ]
       });
     }
   };
+
+  const essayParagraphs = essay.split(/\n+/).filter(Boolean);
 
   return (
     <div className="min-h-screen w-full bg-[#f8fafc] text-[#334155] font-['Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif] antialiased [text-rendering:optimizeLegibility] flex">
@@ -104,15 +108,9 @@ export default function EconomicsMarkerPage() {
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
         }
-        .highlight-economic {
-          background-color: rgba(249, 115, 22, 0.15);
-          border-bottom: 2px solid rgba(249, 115, 22, 0.6);
-          padding: 0.1em 0.2em;
-          border-radius: 3px;
-        }
       `}</style>
 
-      {/* Sidebar Navigation */}
+      {/* 1. Left Sidebar Navigation */}
       <aside className="w-64 bg-[#0f172a] text-slate-300 flex flex-col justify-between border-r border-slate-800 shrink-0 select-none shadow-sm">
         <div>
           <div className="h-16 px-6 flex items-center space-x-2.5 border-b border-slate-800">
@@ -149,10 +147,10 @@ export default function EconomicsMarkerPage() {
         </div>
       </aside>
 
-      {/* Main Container */}
+      {/* 2. Main Work Area */}
       <div className="flex-1 flex flex-col min-w-0 relative">
         
-        {/* Top Header */}
+        {/* Header Bar */}
         <header className="h-16 px-8 bg-white border-b border-slate-200 flex items-center justify-between sticky top-0 z-30 shadow-2xs w-full">
           <div className="flex items-center space-x-4">
             {viewState === 'results' ? (
@@ -174,7 +172,7 @@ export default function EconomicsMarkerPage() {
           </div>
         </header>
 
-        {/* LOADING MODAL / OVERLAY */}
+        {/* Loading Modal overlay */}
         <AnimatePresence>
           {viewState === 'loading' && (
             <motion.div
@@ -189,210 +187,4 @@ export default function EconomicsMarkerPage() {
                   <p className="text-xs text-slate-500">Enforcing strict Cambridge {maxMarks}-mark 0455 rules...</p>
                 </div>
 
-                <div className="space-y-3 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                  {LOADING_STEPS.map((step, idx) => {
-                    const isCompleted = idx < loadingStepIndex;
-                    const isCurrent = idx === loadingStepIndex;
-
-                    return (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0.4, x: -5 }}
-                        animate={{ opacity: isCompleted || isCurrent ? 1 : 0.4, x: 0 }}
-                        className="flex items-center space-x-3 text-xs font-medium"
-                      >
-                        <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                          {isCompleted ? (
-                            <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
-                          ) : isCurrent ? (
-                            <span className="w-3.5 h-3.5 rounded-full border-2 border-orange-600 border-t-transparent animate-spin"></span>
-                          ) : (
-                            <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                          )}
-                        </div>
-                        <span className={isCurrent ? "text-slate-900 font-bold" : isCompleted ? "text-slate-700 font-semibold" : "text-slate-400"}>
-                          {step}
-                        </span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* WORKFLOW VIEWS */}
-        <main className="flex-1 w-full max-w-7xl mx-auto p-8">
-          
-          {/* 1. SUBMISSION VIEW */}
-          {viewState === 'input' && (
-            <div className="max-w-4xl mx-auto space-y-6 w-full">
-              
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4 w-full">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[11px] uppercase tracking-wider bg-orange-50 text-orange-700 px-3 py-1 rounded-lg border border-orange-200 font-bold">
-                      {commandWord} Question ({maxMarks}M)
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">Paper 2</span>
-                  </div>
-
-                  {/* Mark Selector Pills */}
-                  <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
-                    {[2, 4, 6, 8].map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => handleMarkChange(m)}
-                        className={`px-3 py-1 rounded text-xs font-bold transition-all cursor-pointer ${
-                          maxMarks === m ? 'bg-orange-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        {m}M
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <textarea
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  rows={2}
-                  className="w-full bg-transparent border-0 text-base font-semibold text-slate-900 placeholder-slate-400 focus:outline-none resize-none leading-snug tracking-[-0.01em]"
-                />
-              </div>
-
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4 w-full">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center space-x-2.5">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Candidate Response</span>
-                    <span className="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
-                      {maxMarks}-Mark Rubric Active
-                    </span>
-                  </div>
-                  <span className="text-xs text-slate-400 font-medium">
-                    {essay.trim().split(/\s+/).filter(Boolean).length} words
-                  </span>
-                </div>
-
-                <textarea
-                  rows={12}
-                  value={essay}
-                  onChange={(e) => setEssay(e.target.value)}
-                  placeholder={`Draft your structured ${maxMarks}-mark economics response...`}
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-xl p-4 text-[15px] font-normal text-[#334155] placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all leading-[1.65] tracking-[-0.01em] resize-y"
-                />
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={handleStartMarking}
-                    disabled={!essay.trim()}
-                    className="bg-slate-900 hover:bg-orange-600 text-white font-semibold px-8 py-3 rounded-xl text-xs uppercase tracking-wider transition-all disabled:opacity-40 shadow-sm cursor-pointer flex items-center space-x-2"
-                  >
-                    <span>Mark essay</span>
-                    <span>→</span>
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* 3. RESULTS VIEW */}
-          {viewState === 'results' && feedback && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
-              
-              <div className="lg:col-span-7 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4 w-full">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center space-x-2.5">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Annotated Economics Response</span>
-                    <span className="text-[10px] font-semibold bg-orange-50 text-orange-700 px-2.5 py-0.5 rounded-full border border-orange-200">
-                      {maxMarks}-Mark Evaluation
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-[15px] font-normal text-[#334155] leading-[1.65] tracking-[-0.01em] space-y-4">
-                  <p>
-                    {essay}
-                  </p>
-                </div>
-              </div>
-
-              <div className="lg:col-span-5 space-y-6 w-full">
-                
-                <div className="bg-white border border-sky-200 rounded-2xl overflow-hidden shadow-xs">
-                  <div className="bg-[#0284c7] px-6 py-4 text-white flex items-center justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-widest opacity-90">Estimated Mark</span>
-                      <h3 className="text-lg font-extrabold tracking-wide">Cambridge 0455 Audit ({maxMarks}M)</h3>
-                    </div>
-                    <div className="text-3xl font-black font-mono bg-white/10 px-3 py-1 rounded-lg">
-                      {feedback.score}
-                    </div>
-                  </div>
-                  <div className="p-5 bg-white flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#64748B]">Assigned Grade / Band:</span>
-                    <span className="text-xs font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-200">
-                      {feedback.grade} — {feedback.rubricBand}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-5">
-                  <div className="flex space-x-2 border-b border-slate-100 pb-3">
-                    <button
-                      onClick={() => setActiveTab('strengths')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        activeTab === 'strengths'
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      Strengths
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('weaknesses')}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        activeTab === 'weaknesses'
-                          ? 'bg-orange-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      Weaknesses & Areas to Improve
-                    </button>
-                  </div>
-
-                  <div className="space-y-3 min-h-[180px]">
-                    {activeTab === 'strengths' ? (
-                      <ul className="space-y-3">
-                        {feedback.strengths?.map((str: string, idx: number) => (
-                          <li key={idx} className="text-[13px] font-normal text-[#4A5568] leading-[1.5] flex items-start space-x-2.5 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
-                            <span className="text-emerald-600 font-bold shrink-0">✓</span>
-                            <span>{str}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <ul className="space-y-3">
-                        {feedback.weaknesses?.map((weak: string, idx: number) => (
-                          <li key={idx} className="text-[13px] font-normal text-[#4A5568] leading-[1.5] flex items-start space-x-2.5 bg-orange-50/50 p-3 rounded-xl border border-orange-100">
-                            <span className="text-orange-600 font-bold shrink-0">⚠</span>
-                            <span>{weak}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          )}
-
-        </main>
-      </div>
-    </div>
-  );
-}
+                <div className="space-y-3 bg-slate-50 p-5 rounded-xl border border
